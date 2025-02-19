@@ -58,15 +58,21 @@
         <h2>写作进度</h2>
         <textarea id="writing" placeholder="今天写了多少？"></textarea>
         <button onclick="saveWriting()">保存</button>
-
-        <h2>如厕任务</h2>
-        <button onclick="logToilet()">完成一次</button>
-        <p id="toilet-log"></p>
-        <p id="punishment" class="hidden"></p>
+        <button onclick="viewWriting()">查看过往进度</button>
+        <p id="writing-history"></p>
 
         <h2>学习情况</h2>
         <textarea id="study" placeholder="今天学了什么？"></textarea>
         <button onclick="saveStudy()">保存</button>
+        <button onclick="viewStudy()">查看过往学习情况</button>
+        <p id="study-history"></p>
+
+        <h2>如厕任务</h2>
+        <button onclick="logToilet()">完成一次</button>
+        <p id="toilet-log"></p>
+        <button onclick="viewToiletPlan()">查看如厕计划</button>
+        <p id="toilet-plan"></p>
+        <p id="punishment" class="hidden"></p>
 
         <h2>小工具</h2>
         <p>计算器</p>
@@ -92,16 +98,31 @@
         function viewMood() {
             let date = document.getElementById("date").value;
             let mood = localStorage.getItem("mood-" + date);
-            if (mood) {
-                document.getElementById("mood-history").innerText = "这天的心情：" + mood;
-            } else {
-                document.getElementById("mood-history").innerText = "没有记录。";
-            }
+            document.getElementById("mood-history").innerText = mood ? "这天的心情：" + mood : "没有记录。";
         }
 
         function saveWriting() {
-            localStorage.setItem("writing", document.getElementById("writing").value);
+            let date = new Date().toISOString().split("T")[0];
+            localStorage.setItem("writing-" + date, document.getElementById("writing").value);
             alert("写作进度已保存！");
+        }
+
+        function viewWriting() {
+            let date = new Date().toISOString().split("T")[0];
+            let writing = localStorage.getItem("writing-" + date);
+            document.getElementById("writing-history").innerText = writing ? "写作记录：" + writing : "没有记录。";
+        }
+
+        function saveStudy() {
+            let date = new Date().toISOString().split("T")[0];
+            localStorage.setItem("study-" + date, document.getElementById("study").value);
+            alert("学习情况已保存！");
+        }
+
+        function viewStudy() {
+            let date = new Date().toISOString().split("T")[0];
+            let study = localStorage.getItem("study-" + date);
+            document.getElementById("study-history").innerText = study ? "学习记录：" + study : "没有记录。";
         }
 
         function logToilet() {
@@ -110,38 +131,37 @@
             localStorage.setItem("toilet", count);
             document.getElementById("toilet-log").innerText = "已完成：" + count + " 次";
 
-            if (count > 5) {
-                let punishments = ["深蹲 20 次", "喝一杯水", "读 5 分钟书", "闭眼休息 2 分钟"];
+            let stageLimits = [3, 2, 1, 0]; // 阶段性减少
+            let currentStage = Math.min(stageLimits.length - 1, Math.floor(count / 10));
+            let maxAllowed = stageLimits[currentStage];
+
+            if (count > maxAllowed) {
+                let punishments = [
+                    "深蹲 20 次", "喝一杯水", "读 5 分钟书", "闭眼休息 2 分钟", "写 100 字日记", "背 10 个单词", 
+                    "做 10 个俯卧撑", "减少 5 分钟玩手机时间", "跑步 3 分钟", "站立 5 分钟", "听 1 首轻音乐放松",
+                    "自言自语 1 分钟", "按压太阳穴 30 秒", "喝一杯牛奶", "写下 3 个今日目标", "拉伸 2 分钟", 
+                    "洗把脸", "走 200 步", "朗读 1 段文字", "闭眼冥想 1 分钟"
+                ];
                 let randomPunish = punishments[Math.floor(Math.random() * punishments.length)];
                 document.getElementById("punishment").innerText = "惩罚：" + randomPunish;
                 document.getElementById("punishment").classList.remove("hidden");
             }
         }
 
-        function saveStudy() {
-            localStorage.setItem("study", document.getElementById("study").value);
-            alert("学习情况已保存！");
+        function viewToiletPlan() {
+            document.getElementById("toilet-plan").innerText = "当前阶段允许如厕次数：" + (3 - Math.floor((localStorage.getItem("toilet") || 0) / 10));
         }
 
         function calculate() {
             let input = document.getElementById("calc-input").value;
-            try {
-                let result = eval(input);
-                document.getElementById("calc-result").innerText = "结果：" + result;
-            } catch {
-                document.getElementById("calc-result").innerText = "输入错误！";
-            }
+            try { document.getElementById("calc-result").innerText = "结果：" + eval(input); } 
+            catch { document.getElementById("calc-result").innerText = "输入错误！"; }
         }
 
         function generateRandom() {
             let min = parseInt(document.getElementById("rand-min").value);
             let max = parseInt(document.getElementById("rand-max").value);
-            if (!isNaN(min) && !isNaN(max) && min < max) {
-                let randomNum = Math.floor(Math.random() * (max - min + 1)) + min;
-                document.getElementById("rand-result").innerText = "随机数：" + randomNum;
-            } else {
-                document.getElementById("rand-result").innerText = "请输入正确的数值范围！";
-            }
+            document.getElementById("rand-result").innerText = min < max ? "随机数：" + (Math.floor(Math.random() * (max - min + 1)) + min) : "请输入正确数值！";
         }
     </script>
 </body>
