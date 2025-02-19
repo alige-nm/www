@@ -7,33 +7,42 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #cce7ff;
-            color: #333;
+            background: linear-gradient(to right, #6dd5fa, #2980b9);
+            color: white;
             text-align: center;
             padding: 20px;
         }
         .container {
             max-width: 600px;
             margin: 0 auto;
-            background: white;
+            background: rgba(255, 255, 255, 0.9);
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+            color: black;
         }
         h2 {
             color: #007bff;
         }
-        textarea {
+        textarea, input, button {
             width: 100%;
-            height: 100px;
             margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
         }
         button {
             background: #007bff;
             color: white;
             border: none;
-            padding: 10px;
             cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
@@ -43,7 +52,9 @@
         <input type="date" id="date">
         <textarea id="mood" placeholder="今天感觉如何？"></textarea>
         <button onclick="saveMood()">保存</button>
-        
+        <button onclick="viewMood()">查看过去的心情</button>
+        <p id="mood-history"></p>
+
         <h2>写作进度</h2>
         <textarea id="writing" placeholder="今天写了多少？"></textarea>
         <button onclick="saveWriting()">保存</button>
@@ -51,16 +62,41 @@
         <h2>如厕任务</h2>
         <button onclick="logToilet()">完成一次</button>
         <p id="toilet-log"></p>
+        <p id="punishment" class="hidden"></p>
 
         <h2>学习情况</h2>
         <textarea id="study" placeholder="今天学了什么？"></textarea>
         <button onclick="saveStudy()">保存</button>
+
+        <h2>小工具</h2>
+        <p>计算器</p>
+        <input type="text" id="calc-input" placeholder="输入 例如：3+5">
+        <button onclick="calculate()">计算</button>
+        <p id="calc-result"></p>
+
+        <p>随机数生成</p>
+        <input type="number" id="rand-min" placeholder="最小值">
+        <input type="number" id="rand-max" placeholder="最大值">
+        <button onclick="generateRandom()">生成随机数</button>
+        <p id="rand-result"></p>
     </div>
 
     <script>
         function saveMood() {
-            localStorage.setItem("mood-" + document.getElementById("date").value, document.getElementById("mood").value);
+            let date = document.getElementById("date").value;
+            let mood = document.getElementById("mood").value;
+            localStorage.setItem("mood-" + date, mood);
             alert("心情已保存！");
+        }
+
+        function viewMood() {
+            let date = document.getElementById("date").value;
+            let mood = localStorage.getItem("mood-" + date);
+            if (mood) {
+                document.getElementById("mood-history").innerText = "这天的心情：" + mood;
+            } else {
+                document.getElementById("mood-history").innerText = "没有记录。";
+            }
         }
 
         function saveWriting() {
@@ -70,14 +106,42 @@
 
         function logToilet() {
             let count = localStorage.getItem("toilet") || 0;
-            count++;
+            count = parseInt(count) + 1;
             localStorage.setItem("toilet", count);
             document.getElementById("toilet-log").innerText = "已完成：" + count + " 次";
+
+            if (count > 5) {
+                let punishments = ["深蹲 20 次", "喝一杯水", "读 5 分钟书", "闭眼休息 2 分钟"];
+                let randomPunish = punishments[Math.floor(Math.random() * punishments.length)];
+                document.getElementById("punishment").innerText = "惩罚：" + randomPunish;
+                document.getElementById("punishment").classList.remove("hidden");
+            }
         }
 
         function saveStudy() {
             localStorage.setItem("study", document.getElementById("study").value);
             alert("学习情况已保存！");
+        }
+
+        function calculate() {
+            let input = document.getElementById("calc-input").value;
+            try {
+                let result = eval(input);
+                document.getElementById("calc-result").innerText = "结果：" + result;
+            } catch {
+                document.getElementById("calc-result").innerText = "输入错误！";
+            }
+        }
+
+        function generateRandom() {
+            let min = parseInt(document.getElementById("rand-min").value);
+            let max = parseInt(document.getElementById("rand-max").value);
+            if (!isNaN(min) && !isNaN(max) && min < max) {
+                let randomNum = Math.floor(Math.random() * (max - min + 1)) + min;
+                document.getElementById("rand-result").innerText = "随机数：" + randomNum;
+            } else {
+                document.getElementById("rand-result").innerText = "请输入正确的数值范围！";
+            }
         }
     </script>
 </body>
